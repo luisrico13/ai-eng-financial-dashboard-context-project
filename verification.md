@@ -37,3 +37,45 @@ Revisión puntual del código y de una conversación local asociada al repositor
 **Hecho:** después de enmendar un commit que ya se había publicado, `git status --short --branch` reportó `main...origin/main [ahead 1, behind 1]`.
 
 **Regla propuesta:** antes de reescribir commits publicados en `main`, comprobar el estado remoto y coordinarlo con quienes compartan la rama. Preferir un commit nuevo; si se autoriza reescritura, verificar el resultado antes de actualizar el remoto.
+
+## Fase 3: reglas implementadas y probadas
+
+Se incorporaron cuatro reglas en [`.agents/rules`](./.agents/rules), enlazadas
+desde [AGENTS.md](./AGENTS.md). Cada una incluye nombre, alcance, justificación,
+guía específica y una tarea pequeña de validación. Las reglas se leen a través
+de `AGENTS.md`; no son hooks ni verificaciones automáticas.
+
+| Regla | Tarea real | Resultado |
+| --- | --- | --- |
+| [Documentación](./.agents/rules/documentation.md) | Añadir comandos de pruebas y aclarar el consumidor de la API en ambos README. | Enlaces locales comprobados; comandos ejecutados en Compose. |
+| [Frontend](./.agents/rules/frontend-data.md) | Añadir tres regresiones: KPI vacíos, series vacías y período de un solo mes. | 10 pruebas aprobadas, incluidas las existentes de cruce de año. |
+| [Backend](./.agents/rules/backend-api.md) | Añadir cuatro casos de filtros inválidos y uno de intervalo sin datos a `/api/metrics`. | 20 pruebas aprobadas; entradas inválidas devuelven 422 y un intervalo sin datos devuelve `[]`. |
+| [Git y verificación](./.agents/rules/git-verification.md) | Revisar estado inicial, cambios y whitespace; preparar únicamente archivos de esta fase para un commit dedicado. | Estado inicial limpio y sincronizado; `git diff --check` aprobado. |
+
+### Comandos ejecutados
+
+Desde la raíz, usando los servicios de Compose que ya estaban en ejecución:
+
+```bash
+docker compose exec -T frontend npm test -- src/lib/financial-utils.test.ts
+docker compose exec -T backend python -m pytest tests/test_routes.py -q
+git diff --check
+```
+
+También se comprobaron con `pathlib` los enlaces locales de `AGENTS.md` y ambos
+README, las cinco secciones requeridas de cada regla y sus referencias desde
+`AGENTS.md`.
+
+### Refinamientos y límites
+
+- Se concretaron los comandos con directorio y entorno, en lugar de indicar
+  solamente «ejecutar las pruebas».
+- Las fechas del nuevo caso sin datos se derivan de la respuesta de la API,
+  evitando depender de un año fijo.
+- Las carpetas de skills y memoria se marcaron como opcionales; no se crearon
+  directorios vacíos ni se añadió un segundo sistema de instrucciones.
+- No se modificó código de producción ni se añadieron dependencias. Se validaron
+  utilidades y contratos HTTP, no la interacción visual en el navegador.
+- Pytest emitió una advertencia de deprecación de Starlette sobre `httpx` en
+  `TestClient`. No impidió las pruebas; cambiar dependencias queda fuera de esta fase.
+- El commit de esta fase es local; no se hace push sin una solicitud explícita.

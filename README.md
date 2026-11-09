@@ -36,6 +36,10 @@ _Financial metrics dashboard with a React + TypeScript frontend and a FastAPI ba
       └─ /SKILL.md
 ```
 
+Read [AGENTS.md](./AGENTS.md) for the applicable
+[repository rules](./.agents/rules). Skills and the memory bank are optional;
+the tree above shows where to place them if needed.
+
 ## How to run locally
 
 ```bash
@@ -48,6 +52,23 @@ If you need to target a different backend origin, copy `frontend/.env.example` t
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8000
 - API documentation: http://localhost:8000/docs
+
+## Verification
+
+From the repository root, with the Compose services running:
+
+```bash
+docker compose exec -T frontend npm test -- src/lib/financial-utils.test.ts
+docker compose exec -T backend python -m pytest tests/test_routes.py -q
+```
+
+Without Compose, run `npm test -- src/lib/financial-utils.test.ts` from
+`frontend` and `python -m pytest tests/test_routes.py -q` from `backend`,
+with each service's dependencies installed.
+Record results in [verification.md](./verification.md).
+
+The dashboard currently fetches `GET /api/metrics` and computes KPIs and monthly
+series in the frontend. Other backend endpoints are not yet integrated into the UI.
 
 ---
 

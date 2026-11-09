@@ -2,14 +2,20 @@
 
 Agents working on this project **must**:
 
-- Look for **work instructions and rules** in the directory:  
-  `./.agents/rules`
+- Read the **work instructions and rules** in [`.agents/rules`](./.agents/rules)
+  before working, and apply each rule whose scope matches the task:
+  - [Documentation](./.agents/rules/documentation.md)
+  - [Frontend financial data](./.agents/rules/frontend-data.md)
+  - [Backend API contracts](./.agents/rules/backend-api.md)
+  - [Git and verification](./.agents/rules/git-verification.md)
 
-- Look for available **agent skills** in the directory:  
-  `./.agents/skills`
+- Look for available **agent skills** in `./.agents/skills` if the directory exists.
 
 - Look for the **project memory bank** in:  
   `./memory-bank`  
   _(if the directory exists)_
 
 Before taking action (analyzing code, modifying files, or generating outputs), always review the latest files in these locations to ensure compliance with project conventions, context, and operational constraints.
+
+The rules are project guidance loaded through this file, not executable hooks.
+Do not create optional skills or memory directories just to satisfy this checklist.

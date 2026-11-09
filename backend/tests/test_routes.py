@@ -1,5 +1,6 @@
-from datetime import date
+from datetime import date, timedelta
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -47,6 +48,37 @@ def test_metrics_endpoint_respects_date_filters():
     payload = response.json()
     assert payload
     assert all(item["create_date"] == first_date for item in payload)
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"category": "invalid"},
+        {"operation_type": "invalid"},
+        {"start_date": "not-a-date"},
+        {"end_date": "not-a-date"},
+    ],
+)
+def test_metrics_endpoint_rejects_invalid_filters(params):
+    response = client.get("/api/metrics", params=params)
+
+    assert response.status_code == 422
+    assert response.json()["detail"]
+
+
+def test_metrics_endpoint_returns_empty_list_outside_generated_range():
+    base_response = client.get("/api/metrics")
+    assert base_response.status_code == 200
+    last_date = date.fromisoformat(base_response.json()[-1]["create_date"])
+    outside_date = (last_date + timedelta(days=1)).isoformat()
+
+    response = client.get(
+        "/api/metrics",
+        params={"start_date": outside_date, "end_date": outside_date},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == []
 
 
 def test_b2b_endpoint_only_returns_b2b_records():

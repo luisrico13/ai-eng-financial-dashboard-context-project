@@ -36,6 +36,10 @@ _Dashboard de métricas financieras con frontend en React + TypeScript y backend
       └─ /SKILL.md
 ```
 
+Consulta [AGENTS.md](./AGENTS.md) para aplicar las
+[reglas del repositorio](./.agents/rules). Las skills y el banco de memoria son
+opcionales; el árbol anterior indica dónde colocarlos si se necesitan.
+
 ## Cómo ejecutar en local
 
 ```bash
@@ -48,6 +52,24 @@ Si necesitas apuntar a otro backend, copia `frontend/.env.example` como `.env` y
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8000
 - Documentación API: http://localhost:8000/docs
+
+## Verificación
+
+Desde la raíz del repositorio, con los servicios de Compose en ejecución:
+
+```bash
+docker compose exec -T frontend npm test -- src/lib/financial-utils.test.ts
+docker compose exec -T backend python -m pytest tests/test_routes.py -q
+```
+
+Sin Compose, ejecuta `npm test -- src/lib/financial-utils.test.ts` desde
+`frontend` y `python -m pytest tests/test_routes.py -q` desde `backend`,
+con las dependencias de cada servicio instaladas.
+Registra los resultados en [verification.md](./verification.md).
+
+El dashboard actualmente consulta `GET /api/metrics` y calcula los KPI y las
+series mensuales en el frontend. Las demás rutas del backend aún no están
+integradas en la interfaz.
 
 ---
 
