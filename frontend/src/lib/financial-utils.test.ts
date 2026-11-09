@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeKPIs,
   computeMonthlyData,
+  formatPeriod,
   formatCurrency,
   formatPercent,
 } from "./financial-utils";
@@ -100,6 +101,33 @@ describe("computeMonthlyData", () => {
       outcome: 0,
       profitPercent: 100,
     });
+  });
+});
+
+describe("formatPeriod", () => {
+  it("formats the actual date range across calendar years", () => {
+    const crossYearMovements: FinancialMovement[] = [
+      {
+        create_date: "2026-01-08",
+        amount: 300,
+        operation_type: "income",
+        category: "sales",
+        business_type: "B2C",
+      },
+      {
+        create_date: "2025-12-05",
+        amount: 200,
+        operation_type: "outcome",
+        category: "operational",
+        business_type: "B2B",
+      },
+    ];
+
+    expect(formatPeriod(crossYearMovements)).toBe("Dec 2025 - Jan 2026");
+  });
+
+  it("returns a no-data label for an empty movement list", () => {
+    expect(formatPeriod([])).toBe("No data");
   });
 });
 
