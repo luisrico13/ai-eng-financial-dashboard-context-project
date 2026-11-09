@@ -37,8 +37,12 @@ _Financial metrics dashboard with a React + TypeScript frontend and a FastAPI ba
 ```
 
 Read [AGENTS.md](./AGENTS.md) for the applicable
-[repository rules](./.agents/rules). Skills and the memory bank are optional;
-the tree above shows where to place them if needed.
+[repository rules](./.agents/rules). Skills are optional; the tree above shows
+where to place them if needed.
+
+The [memory bank](./memory-bank/README.md) records the product overview,
+technology stack and current state with links to repository evidence.
+Suggested next steps are explicitly separate from implemented features.
 
 ## How to run locally
 

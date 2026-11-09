@@ -79,3 +79,32 @@ README, las cinco secciones requeridas de cada regla y sus referencias desde
 - Pytest emitió una advertencia de deprecación de Starlette sobre `httpx` en
   `TestClient`. No impidió las pruebas; cambiar dependencias queda fuera de esta fase.
 - El commit de esta fase es local; no se hace push sin una solicitud explícita.
+
+## Banco de memoria: creación y verificación
+
+Se creó [memory-bank](./memory-bank/README.md) con tres documentos:
+
+- [Producto](./memory-bank/README.md): capacidades observadas, contrato de datos
+  sintéticos y límites de las afirmaciones, con referencias al código.
+- [Stack](./memory-bank/tech-context.md): lenguajes, dependencias declaradas,
+  contenedores, proxy y comandos, distinguiendo rangos de versiones instaladas.
+- [Estado](./memory-bank/current-state.md): resultados de la fase de reglas,
+  gaps conocidos y siguientes prioridades explícitamente propuestas, no aprobadas.
+
+Se actualizaron `AGENTS.md` y ambos README para descubrir el banco.
+La revisión del código tomó como base el commit `eac7765`; no se atribuyen al
+producto datos reales, funciones de UI no conectadas ni un roadmap aprobado.
+
+### Validación de esta fase
+
+- Se contrastaron las afirmaciones con `App.tsx`, utilidades y tipos financieros,
+  la fila de KPI, rutas del backend, manifests, configuración de Vite, Dockerfiles,
+  Compose y los resultados previamente registrados.
+- Se ejecutó una comprobación con Python (`pathlib` y expresiones regulares) de
+  existencia de enlaces locales y anclas de encabezados en el banco, `AGENTS.md`,
+  ambos README y este registro.
+- Se ejecutó `git diff --check` sin errores.
+- No se modificó código de aplicación, pruebas ni dependencias. No se repitieron
+  pruebas de aplicación ni una validación de navegador: los 10 y 20 casos citados
+  pertenecen a la ejecución de la fase de reglas documentada arriba.
+- Se prepara un commit dedicado a esta documentación; no se hace push.

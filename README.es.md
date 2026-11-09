@@ -37,8 +37,12 @@ _Dashboard de métricas financieras con frontend en React + TypeScript y backend
 ```
 
 Consulta [AGENTS.md](./AGENTS.md) para aplicar las
-[reglas del repositorio](./.agents/rules). Las skills y el banco de memoria son
-opcionales; el árbol anterior indica dónde colocarlos si se necesitan.
+[reglas del repositorio](./.agents/rules). Las skills son opcionales; el árbol
+anterior indica dónde colocarlas si se necesitan.
+
+El [banco de memoria](./memory-bank/README.md) documenta el producto, el stack
+y el estado actual con enlaces a evidencia del repositorio.
+Los siguientes pasos propuestos se distinguen de las funciones implementadas.
 
 ## Cómo ejecutar en local
 
