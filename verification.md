@@ -1,14 +1,39 @@
-Verificación
+# Nota de análisis: hallazgos y reglas propuestas
 
-✅ Qué hace: muestra ingresos, gastos, beneficio y margen, con gráficos mensuales de ingresos/gastos y margen, según App.tsx y kpi-row.tsx.
-✅ Conexión: el frontend pide /api/metrics; Vite lo envía a backend:8000 dentro de Compose, como configuran App.tsx y vite.config.ts.
-✅ API: existen endpoints de movimientos, facetas, resúmenes, categorías principales, comparaciones, alertas y datos B2B/B2C en routes.py.
-✅ Sin base de datos configurada: el backend genera datos simulados con semilla 42; sus dependencias son FastAPI, Uvicorn y herramientas de depuración/pruebas. Ver requirements.txt.
-✅ Mock del frontend: hay un archivo de movimientos de 2024, pero no se importa en el código de la interfaz; esta consulta al backend. Ver mock-data.ts.
-❌ Período mostrado: el encabezado dice “2024 - Full Year”, pero la API genera fechas según el año y mes actuales. Por tanto, la etiqueta no describe necesariamente los datos. Ver App.tsx y routes.py.
-✅ Ejecución y puertos: Compose declara frontend en 5173, backend en 8000 y depuración en 5678. En la última comprobación, ambos contenedores estaban activos y frontend, API y /docs respondían con HTTP 200. El README documenta URLs con localhost; desde Codespaces hay que usar la dirección del puerto reenviado que muestre VS Code.
-Resumen corregido
+## Alcance
 
-El proyecto es un dashboard de métricas financieras hecho con React + TypeScript y una API FastAPI. La API genera datos simulados —no lee de una base de datos— y la interfaz calcula con ellos los KPI y los gráficos. Aunque hay un fixture de ejemplo con fechas de 2024, no se usa en la pantalla principal. Además, el encabezado está fijado en 2024, mientras que las fechas de la API dependen de la fecha actual; esa etiqueta puede ser engañosa.
+Revisión puntual del código y de una conversación local asociada al repositorio. La conversación detectó que el período fijo del encabezado no coincidía con las fechas generadas por la API; el código ya se corrigió para derivar el período de los movimientos. Una sola conversación no permite afirmar que un comportamiento sea recurrente.
 
-Se ejecuta con docker compose up --build. El navegador accede al frontend por el puerto publicado 5173; las llamadas /api pasan por Vite al backend, publicado en 8000, con documentación en /docs. El puerto 5678 se usa para depuración de Python.
+## Arquitectura
+
+**Hecho:** `frontend/src/App.tsx` consume `GET /api/metrics` y calcula los KPI y los datos mensuales en el cliente. `backend/app/routes.py` también expone endpoints de resumen, facetas, categorías, comparaciones, alertas y segmentos B2B/B2C.
+
+**Regla propuesta:** al agregar o cambiar un endpoint, especificar si lo consume el frontend. No presentar una ruta disponible en backend como una capacidad visible del dashboard sin verificar la integración.
+
+## Datos y periodos
+
+**Hecho:** `backend/app/routes.py` genera movimientos para doce meses y calcula sus años a partir de la fecha actual. `frontend/src/App.tsx` usa `formatPeriod` para mostrar el rango recibido; `frontend/src/lib/financial-utils.test.ts` cubre rangos entre años y la lista vacía.
+
+**Regla propuesta:** derivar etiquetas temporales de los datos recibidos, no de un año fijo, y probar tanto rangos que cruzan el año como datos vacíos.
+
+**Hecho:** `frontend/src/lib/mock-data.ts` contiene movimientos de 2024, pero no hay referencias de runtime a `mockMovements`; la pantalla consume la API.
+
+**Regla propuesta:** antes de tratar un fixture como fuente de la interfaz, comprobar sus referencias. Si queda sin uso, mantener explícito que es solo un fixture o retirarlo cuando deje de servir a pruebas u otros consumidores.
+
+## DX y pruebas
+
+**Hecho:** los scripts npm, incluido `test`, están en `frontend/package.json`; la raíz no tiene `package.json`. En esta revisión, las pruebas funcionaron dentro del contenedor con `docker compose exec -T frontend npm test -- src/lib/financial-utils.test.ts`; en el host no estaba instalado Vitest.
+
+**Regla propuesta:** documentar el directorio y entorno requeridos para cada comando de frontend. Ejecutar los scripts desde `frontend` con dependencias instaladas o desde el servicio `frontend` de Compose.
+
+## Configuración de agentes
+
+**Hecho:** `AGENTS.md` indica revisar `.agents/rules`, `.agents/skills` y `memory-bank`; esas rutas no existen en el estado revisado.
+
+**Regla propuesta:** las instrucciones deben marcar como opcionales las rutas que pueden faltar, o incluirlas en el repositorio si son requisitos obligatorios para trabajar.
+
+## Flujo Git
+
+**Hecho:** después de enmendar un commit que ya se había publicado, `git status --short --branch` reportó `main...origin/main [ahead 1, behind 1]`.
+
+**Regla propuesta:** antes de reescribir commits publicados en `main`, comprobar el estado remoto y coordinarlo con quienes compartan la rama. Preferir un commit nuevo; si se autoriza reescritura, verificar el resultado antes de actualizar el remoto.
