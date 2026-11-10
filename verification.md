@@ -232,3 +232,28 @@ pruebas runtime. `git diff --cached --check` terminó sin errores y se comprobar
 las referencias locales a tipos y código. El primer `git add` falló porque se
 usaron rutas desde la raíz mientras el terminal estaba en `frontend`; se repitió
 con rutas relativas correctas. No se hicieron cambios de runtime ni push.
+
+## Fase 7: README del contrato de datos
+
+Se creó `frontend/specs/README.md` como handoff autónomo de las tres
+funcionalidades. Documenta endpoints contrastados con `/docs`, tipos request y
+response de TypeScript, valores y restricciones de query, estados de UI y al
+menos dos casos límite por funcionalidad.
+
+El README conserva explícitas las decisiones de `components.md`: media móvil de
+tres períodos pendiente en backend, facetas globales sin filtro por negocio,
+denominador de ingresos derivado de todas las categorías devueltas y ruta
+`/comparison` pendiente de navegación.
+
+### Verificación
+
+Desde el contenedor `frontend`:
+
+```bash
+npx tsc --noEmit
+```
+
+El comando terminó con código 0 y sin errores de tipos. Esta fase solo modificó
+documentación; no se ejecutaron pruebas runtime ni se conectaron endpoints.
+`git diff --cached --check` pasó y se comprobaron con `test -f` los cuatro
+enlaces locales a componentes, tipos y utilidades financieras.
