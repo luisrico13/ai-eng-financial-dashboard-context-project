@@ -204,3 +204,31 @@ cuando se especifican archivos directamente; el comando final lo añadió y
 pasó. No se ejecutó el build de la aplicación: su `tsconfig.app.json` incluye
 solo `src`, por lo que se verificaron los archivos de specs explícitamente con
 el compilador estricto. No se modificó código de la aplicación ni se hizo push.
+
+## Fase 6: especificación de componentes
+
+Se creó `frontend/specs/components.md` con componentes, props enlazadas a los
+tipos de la Fase 2, estados de carga/error/vacío, ubicación y comportamiento
+responsive para las tres funcionalidades del PM.
+
+Se resolvieron explícitamente estas brechas y decisiones antes de implementar:
+
+- El backend calcula hoy el promedio de todos los períodos anteriores, no el
+  promedio móvil de tres períodos solicitado. La spec requiere ajustar la
+  semántica backend de `baseline_average` y conservar períodos previos como
+  contexto cuando haya un filtro de fechas.
+- `facets` es global y no filtra por negocio. Se usa como catálogo común; las
+  filas disponibles para cada segmento salen de sus respuestas de top categorías.
+- El endpoint de top categorías no retorna el total del grupo. Se consultan
+  hasta 20 categorías (el union actual tiene cinco) para derivar denominador y
+  porcentaje antes de mostrar las cinco principales.
+- Se define una página recargable `/comparison`; el proyecto aún no tiene
+  enrutador, por lo que la implementación deberá añadir navegación de rutas.
+
+La validación de esta fase es documental: se contrastaron los componentes con
+`App.tsx`, los componentes del dashboard, los tipos de la Fase 2 y los contratos
+en `backend/app/routes.py`. No se modificó código de aplicación ni se ejecutaron
+pruebas runtime. `git diff --cached --check` terminó sin errores y se comprobaron
+las referencias locales a tipos y código. El primer `git add` falló porque se
+usaron rutas desde la raíz mientras el terminal estaba en `frontend`; se repitió
+con rutas relativas correctas. No se hicieron cambios de runtime ni push.
