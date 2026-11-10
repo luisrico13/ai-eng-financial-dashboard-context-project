@@ -168,3 +168,39 @@ consultaron `/health`, `/api/metrics`, `/api/metrics/facets`,
 Esta fase registra exploración de API y diagnóstico operativo: no se modificó
 código, no se escribieron specs y no se hizo push.
 Se ejecutó `git diff --check` sin errores; no se repitieron pruebas de aplicación.
+
+## Fase 5: tipos TypeScript para contratos de la API
+
+Se crearon `frontend/specs/api-types.ts` y `frontend/specs/param-types.ts` para
+las respuestas de facetas, alertas y categorías, además de los parámetros de
+query para alertas y categorías. Los tipos reutilizan `OperationType`,
+`Category` y `BusinessType` de `frontend/src/lib/financial-types.ts`; las
+propiedades llevan JSDoc con su significado, valores válidos y formato cuando
+aplica. No se usaron los tipos `any` ni `object`.
+
+El contrato se contrastó con `/openapi.json`: `MetricsFacets` requiere los cinco
+campos declarados; `MetricsAlert` contiene `period`, `outcome_total`,
+`baseline_average` e `increase_ratio`; `TopCategoryItem` contiene `category`,
+`operation_type` y `total_amount`. `AlertsParams` refleja `threshold`,
+`group_by`, fechas y `business_type`; `TopCategoriesParams` refleja
+`operation_type`, `limit`, fechas y `business_type`. Se excluyó `category` de
+`TopCategoriesParams` porque ese endpoint no lo publica como parámetro.
+
+### Verificación
+
+Desde la raíz, en el contenedor `frontend`:
+
+```bash
+docker compose exec -T frontend ./node_modules/.bin/tsc --ignoreConfig --strict --noEmit --target ES2023 --moduleResolution bundler --module esnext specs/api-types.ts specs/param-types.ts
+docker compose exec -T frontend ./node_modules/.bin/eslint specs/api-types.ts specs/param-types.ts
+git diff --check
+```
+
+Los tres comandos terminaron sin errores. Se canceló el primer intento de
+`npx tsc` desde la raíz porque `npx` ofreció instalar el paquete ajeno
+`tsc@2.0.4`; el host tampoco tiene `frontend/node_modules/.bin/tsc`. El primer
+intento en el contenedor indicó que TypeScript 6 requiere `--ignoreConfig`
+cuando se especifican archivos directamente; el comando final lo añadió y
+pasó. No se ejecutó el build de la aplicación: su `tsconfig.app.json` incluye
+solo `src`, por lo que se verificaron los archivos de specs explícitamente con
+el compilador estricto. No se modificó código de la aplicación ni se hizo push.
