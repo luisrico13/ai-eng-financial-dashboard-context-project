@@ -3,6 +3,29 @@
 Revision documental: 2026-11-09, codigo base `eac7765`. Esta instantanea debe
 actualizarse con evidencia nueva; no representa disponibilidad continua del servicio.
 
+## Actualizacion: skills y QA financiero
+
+- Se aplicaron `vercel-react-best-practices` y
+  [`accessibility`](https://skills.sh/addyosmani/web-quality-skills/accessibility).
+  Se eligio accesibilidad para complementar el rendimiento con estados de carga,
+  error y movimiento reducido. Las busquedas cubrieron `testing`, `performance`
+  y `accessibility`; los archivos de las skills comunitarias siguen locales.
+- La carga diferida de las graficas, los estados de error y la busqueda del
+  periodo en una pasada se verificaron con build, lint, 12 pruebas y navegador,
+  con los limites y cifras registrados en
+  [verification.md](../verification.md#rendimiento-react-y-accesibilidad).
+- Se creo la skill interna
+  [dashboard-financial-qa](../.skills/dashboard-financial-qa/SKILL.md) para
+  contrastar contrato, KPI, periodo, tablas y estados con datos sinteticos.
+  Su guia se leyo y aplico manualmente en una tarea real. Tiene una
+  [entrada de descubrimiento](../.github/skills/dashboard-financial-qa/SKILL.md)
+  para Copilot; su carga automatica no esta verificada en esta sesion.
+- **Hallazgo pendiente:** en la prueba de navegador, una fecha ISO del primer
+  dia de enero se agrupo en diciembre con zona `America/Bogota`, aunque el
+  encabezado y los KPI coincidieron. En UTC las tablas coincidieron. No se ha
+  corregido; la reproduccion y sus limites estan en
+  [verification.md](../verification.md#skill-interna-y-qa-del-dashboard).
+
 ## Implementado y validado
 
 | Estado | Evidencia y alcance |
@@ -25,9 +48,10 @@ Los resultados anteriores se atribuyen a la fase de reglas, no a una nueva ejecu
    [backend](../backend/app/routes.py), pero [App.tsx](../frontend/src/App.tsx)
    solo consulta `/api/metrics` sin parametros de filtro. No atribuir esos
    controles o vistas al dashboard actual.
-3. **Validacion visual no acreditada.** El registro de la fase de reglas
-   acredita utilidades y contratos HTTP, no interacciones de navegador:
-   [verification.md](../verification.md).
+3. **Validacion visual parcial.** Las comprobaciones posteriores incluyeron
+   navegador y teclado con datos sinteticos, pero no lector de pantalla real;
+   existe la discrepancia de zona horaria descrita arriba:
+   [verification.md](../verification.md#skill-interna-y-qa-del-dashboard).
 4. **Advertencia en las pruebas del backend.** La ejecucion registrada emitio
    una deprecacion de Starlette sobre el uso de httpx en `TestClient`; las
    pruebas pasaron. No se modificaron dependencias:
@@ -43,8 +67,9 @@ No se identifico una lista de prioridades aprobada en las fuentes de esta
 revision. El siguiente orden es una recomendacion tecnica basada en los gaps
 anteriores; requiere confirmacion antes de implementar:
 
-1. **Verificar la experiencia en navegador:** carga, error y renderizado de KPI
-   y graficos, para complementar las pruebas de utilidades y API ya registradas.
+1. **Corregir y verificar la agrupacion por zona horaria:** reproducir el caso
+   del primer dia del mes y comprobar que las fechas de calendario conservan
+   su mes sin depender de la zona local.
 2. **Revisar la deprecacion de TestClient:** reproducir el aviso y evaluar una
    actualizacion compatible con FastAPI/Starlette antes de cambiar dependencias.
 3. **Acordar el siguiente alcance funcional:** decidir si se integrara alguna

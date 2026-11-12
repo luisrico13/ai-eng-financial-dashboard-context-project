@@ -71,9 +71,14 @@ export function formatPeriod(movements: FinancialMovement[]): string {
     return "No data";
   }
 
-  const dates = movements.map((movement) => movement.create_date).sort();
-  const firstMonth = formatMonthYearLabel(dates[0].slice(0, 7));
-  const lastMonth = formatMonthYearLabel(dates[dates.length - 1].slice(0, 7));
+  let firstDate = movements[0].create_date;
+  let lastDate = firstDate;
+  for (const { create_date } of movements) {
+    if (create_date < firstDate) firstDate = create_date;
+    if (create_date > lastDate) lastDate = create_date;
+  }
+  const firstMonth = formatMonthYearLabel(firstDate.slice(0, 7));
+  const lastMonth = formatMonthYearLabel(lastDate.slice(0, 7));
 
   return firstMonth === lastMonth
     ? firstMonth
