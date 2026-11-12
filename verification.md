@@ -257,3 +257,47 @@ El comando terminó con código 0 y sin errores de tipos. Esta fase solo modific
 documentación; no se ejecutaron pruebas runtime ni se conectaron endpoints.
 `git diff --cached --check` pasó y se comprobaron con `test -f` los cuatro
 enlaces locales a componentes, tipos y utilidades financieras.
+
+## Restauración de estados y accesibilidad del dashboard
+
+Se restauraron en `frontend/src/App.tsx` el anuncio de carga, la alerta y el
+reintento ante errores, los encabezados de secciones y el cálculo de KPI,
+período y series a partir de los movimientos recibidos. La petición se cancela
+al desmontar el componente; no se usan datos de respaldo ante un fallo.
+Se mantuvieron los cambios existentes en las gráficas, el título del documento
+y las demás modificaciones del árbol de trabajo.
+
+### Verificación
+
+Como los servicios de Compose estaban detenidos y Vitest no estaba instalado en
+el host, se ejecutó la imagen existente en un contenedor temporal con el código
+montado en modo lectura y copiado dentro del contenedor:
+
+```bash
+docker run --rm -v /workspaces/ai-eng-financial-dashboard-context-project/frontend:/source:ro --workdir /app ai-eng-financial-dashboard-context-project-frontend sh -c 'cp -a /source/. /app/ && npm test -- src/App.test.tsx src/lib/financial-utils.test.ts && npm run build && npm run lint'
+git diff --check
+```
+
+Pasaron 11 pruebas, el build y lint. La nueva prueba comprueba el HTML inicial
+del estado de carga; no verifica el flujo de reintento en un navegador. Vite
+advirtió que el bundle supera 500 kB minificado. No se realizó una auditoría
+Lighthouse ni una prueba manual con teclado o lector de pantalla.
+
+## Verificación de accesibilidad en navegador
+
+Se ejecutó Chromium con Playwright y axe-core en un contenedor temporal,
+con respuestas sintéticas interceptadas para probar datos y fallo de API sin
+modificar servicios compartidos. Se verificó con Tab y Enter la apertura de las
+dos tablas y el reintento tras un error 503; también se revisaron títulos,
+estados ARIA y cinco iconos decorativos, que tienen `aria-hidden="true"`.
+
+Axe no detectó infracciones WCAG 2 A/AA, 2.1 A/AA o 2.2 AA en los estados
+de datos, tablas abiertas y error. Dejó el contraste de textos SVG y leyendas
+para revisión manual. La medición de colores computados mostró inicialmente
+3,14:1 en los ejes; se corrigieron las variables de color y se comprobó un
+mínimo de 5,18:1 en 16 etiquetas de ejes y leyendas evaluadas.
+
+Se repitieron 11 pruebas de frontend, build y lint en un contenedor temporal:
+pasaron; el build mantuvo el aviso de bundle superior a 500 kB. No se probó
+con un lector de pantalla real ni se ejecutó Lighthouse; estos resultados no
+certifican conformidad WCAG completa.

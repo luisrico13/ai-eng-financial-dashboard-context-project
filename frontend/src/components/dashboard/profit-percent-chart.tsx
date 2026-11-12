@@ -81,12 +81,12 @@ export function ProfitPercentChart({ data, loading }: ProfitPercentChartProps) {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.6} />
               <XAxis
                 dataKey="month"
-                tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }}
+                tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }}
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(v) => `${v.toFixed(0)}%`}
@@ -107,6 +107,45 @@ export function ProfitPercentChart({ data, loading }: ProfitPercentChartProps) {
             </LineChart>
           </ResponsiveContainer>
         )}
+        {hasData ? (
+          <details className="mt-4">
+            <summary className="min-h-11 cursor-pointer rounded py-2 text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2">
+              View data table
+            </summary>
+            <div className="mt-2 overflow-x-auto">
+              <table className="w-full min-w-[16rem] text-sm">
+                <caption className="sr-only">
+                  Monthly profit margin percentages
+                </caption>
+                <thead className="text-muted-foreground">
+                  <tr>
+                    <th className="py-2 pr-4 text-left" scope="col">
+                      Month
+                    </th>
+                    <th className="py-2 text-right" scope="col">
+                      Profit margin
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((point) => (
+                    <tr
+                      key={point.month}
+                      className="border-t border-border/60"
+                    >
+                      <th className="py-2 pr-4 text-left font-medium" scope="row">
+                        {point.month}
+                      </th>
+                      <td className="py-2 text-right">
+                        {point.profitPercent.toFixed(1)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        ) : null}
       </CardContent>
     </Card>
   )

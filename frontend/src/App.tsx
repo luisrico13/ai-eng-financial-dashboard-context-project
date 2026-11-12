@@ -3,11 +3,7 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { KPIRow } from "@/components/dashboard/kpi-row";
 import { IncomeOutcomeChart } from "@/components/dashboard/income-outcome-chart";
 import { ProfitPercentChart } from "@/components/dashboard/profit-percent-chart";
-import {
-  type FinancialMovement,
-  type KPIMetrics,
-  type MonthlyDataPoint,
-} from "@/lib/financial-types";
+import { type FinancialMovement } from "@/lib/financial-types";
 import {
   computeKPIs,
   computeMonthlyData,
@@ -16,8 +12,10 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
-async function fetchFinancialData(): Promise<FinancialMovement[]> {
-  const response = await fetch(`${API_BASE_URL}/api/metrics`);
+async function fetchFinancialData(
+  signal: AbortSignal,
+): Promise<FinancialMovement[]> {
+  const response = await fetch(`${API_BASE_URL}/api/metrics`, { signal });
   if (!response.ok) {
     throw new Error(`Failed to fetch financial data: ${response.status}`);
   }
@@ -25,56 +23,105 @@ async function fetchFinancialData(): Promise<FinancialMovement[]> {
 }
 
 function App() {
-  const [metrics, setMetrics] = useState<KPIMetrics | null>(null);
-  const [monthlyData, setMonthlyData] = useState<MonthlyDataPoint[]>([]);
-  const [period, setPeriod] = useState("Loading...");
+  const [movements, setMovements] = useState<FinancialMovement[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    fetchFinancialData()
+    const controller = new AbortController();
+    let active = true;
+
+    fetchFinancialData(controller.signal)
       .then((movements) => {
-        setMetrics(computeKPIs(movements));
-        setMonthlyData(computeMonthlyData(movements));
-        setPeriod(formatPeriod(movements));
+        if (active) {
+          setMovements(movements);
+          setError(null);
+        }
       })
-      .catch(() => {
-        setPeriod("Unavailable");
+      .catch((cause: unknown) => {
+        if (!active || controller.signal.aborted) {
+          return;
+        }
+        console.error("Failed to fetch financial data", cause);
         setError(
-          "No se pudo cargar la informacion financiera. Revisa la API de backend.",
+          "We couldn't load financial data. Check your connection and try again.",
         );
       })
       .finally(() => {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       });
-  }, []);
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [retryCount]);
+
+  const metrics = movements ? computeKPIs(movements) : null;
+  const monthlyData = movements ? computeMonthlyData(movements) : [];
+  const period = loading
+    ? "Loading..."
+    : error
+      ? "Unavailable"
+      : formatPeriod(movements ?? []);
+
+  function retryFetch() {
+    if (loading) return;
+    setError(null);
+    setMovements(null);
+    setLoading(true);
+    setRetryCount((count) => count + 1);
+  }
 
   return (
-    <main className="dark min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-8">
-          <DashboardHeader period={period} />
+    <>
+      <p className="sr-only" role="status">
+        {loading ? "Loading financial data." : ""}
+      </p>
+      <main
+        className="dark min-h-screen bg-background text-foreground"
+        aria-busy={loading}
+      >
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-8">
+            <DashboardHeader period={period} />
 
-          {error ? (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground">
-              {error}
-            </div>
-          ) : null}
+            {error ? (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground">
+                <p role="alert">{error}</p>
+                <button
+                  type="button"
+                  className="mt-3 min-h-11 rounded-md border border-current px-3 py-1.5 font-medium focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+                  onClick={retryFetch}
+                >
+                  Try again
+                </button>
+              </div>
+            ) : null}
 
-          <section aria-label="Key performance indicators">
-            <KPIRow metrics={metrics} loading={loading} />
-          </section>
+            <section aria-labelledby="kpi-heading">
+              <h2 id="kpi-heading" className="sr-only">
+                Key performance indicators
+              </h2>
+              <KPIRow metrics={metrics} loading={loading} />
+            </section>
 
-          <section
-            aria-label="Financial charts"
-            className="grid grid-cols-1 gap-4 xl:grid-cols-2"
-          >
-            <IncomeOutcomeChart data={monthlyData} loading={loading} />
-            <ProfitPercentChart data={monthlyData} loading={loading} />
-          </section>
+            <section aria-labelledby="charts-heading">
+              <h2 id="charts-heading" className="sr-only">
+                Financial charts
+              </h2>
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <IncomeOutcomeChart data={monthlyData} loading={loading} />
+                <ProfitPercentChart data={monthlyData} loading={loading} />
+              </div>
+            </section>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }
 
