@@ -10,6 +10,8 @@ Agents working on this project **must**:
   - [Git and verification](./.agents/rules/git-verification.md)
 
 - Look for available **agent skills** in `./.agents/skills` if the directory exists.
+- For financial dashboard QA, read and apply the project workflow in
+  [`.skills/dashboard-financial-qa/SKILL.md`](./.skills/dashboard-financial-qa/SKILL.md).
 
 - Read the **project memory bank**:
   - [Product overview](./memory-bank/README.md)

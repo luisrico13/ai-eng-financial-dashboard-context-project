@@ -355,3 +355,49 @@ es `none`. Axe no reportó infracciones en carga, datos y error de gráfica;
 dejó una comprobación incompleta en cada uno de los dos últimos estados.
 No se ejecutaron Lighthouse ni pruebas con lector de pantalla, ni se midieron
 Web Vitals; la automatización no certifica conformidad WCAG completa.
+
+## Skill interna y QA del dashboard
+
+Se redactó [dashboard-financial-qa](./.skills/dashboard-financial-qa/SKILL.md)
+para cubrir un gap específico: contrastar el contrato de movimientos con el
+período, KPI y tablas, incluyendo fechas de calendario y estados de API. Define
+objetivo, entradas, procedimiento, salida y criterios de aceptación.
+[AGENTS.md](./AGENTS.md) indica leerla para este tipo de trabajo. Se leyó y
+aplicó manualmente en esta sesión. Para facilitar su descubrimiento en VS Code,
+se añadió una [entrada](./.github/skills/dashboard-financial-qa/SKILL.md) en
+`.github/skills` que remite al archivo en `.skills`. La invocación o el
+descubrimiento automáticos no se verificaron en esta sesión; deben comprobarse
+en un chat nuevo con el harness deseado.
+
+Para validar la guía se comprobó el dashboard actual en Chromium con la API
+interceptada, sin alterar los servicios compartidos. La muestra sintética,
+desordenada, contiene ingresos de 500 el `2026-01-01` y 1.000 el `2025-12-15`,
+y gastos de 250 el `2025-12-17`. Las expectativas independientes son ingreso
+1.500, gasto 250, beneficio 1.250, margen 83,3 %, período diciembre-enero;
+para diciembre, ingreso 1.000, gasto 250 y margen 75 %; para enero, ingreso
+500, gasto 0 y margen 100 %.
+
+- En UTC, período, cuatro KPI y ambas tablas coincidieron con esos valores.
+- En `America/Bogota`, período y KPI coincidieron, pero las tablas agruparon
+  todo en diciembre: ingreso 1.500, gasto 250 y margen 83,3 %. La fecha ISO
+  `2026-01-01` se interpreta como medianoche UTC y
+  [financial-utils.ts](./frontend/src/lib/financial-utils.ts) usa componentes de
+  fecha locales para la agrupación. Es una discrepancia preexistente sin corregir.
+- Se comprobaron carga, respuesta 503, reintento y respuesta vacía. Las pruebas
+  unitarias existentes cubren además lista vacía, un mes, cruce de año y cero
+  ingresos. La prueba de navegador no cubrió por separado cero ingresos.
+
+Desde la raíz, con Compose activo, pasó este comando: 12 pruebas en total.
+
+```bash
+docker compose exec -T frontend npm test -- src/lib/financial-utils.test.ts src/App.test.tsx
+```
+
+El primer intento de navegador local falló por falta de `libatk-1.0.so.0`; se
+instaló Chromium solo en un contenedor temporal y se repitió la prueba. El
+primer intento en ese contenedor falló por un selector de prueba incorrecto;
+se corrigió el selector y se obtuvieron los resultados anteriores. El script fue
+temporal, no forma parte del repositorio. La discrepancia de Bogotá se reportó
+como fallo, aunque el script terminó con código 0 tras registrar ambos resultados.
+No se modificó código de aplicación, no se repitieron build ni lint y no se
+probó un lector de pantalla.
