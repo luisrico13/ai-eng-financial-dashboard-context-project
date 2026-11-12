@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { KPIRow } from "@/components/dashboard/kpi-row";
-import { IncomeOutcomeChart } from "@/components/dashboard/income-outcome-chart";
-import { ProfitPercentChart } from "@/components/dashboard/profit-percent-chart";
+import {
+  ChartErrorBoundary,
+  ChartSkeleton,
+} from "@/components/dashboard/chart-loading";
 import { type FinancialMovement } from "@/lib/financial-types";
 import {
   computeKPIs,
@@ -11,6 +13,17 @@ import {
 } from "@/lib/financial-utils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
+const IncomeOutcomeChart = lazy(() =>
+  import("@/components/dashboard/income-outcome-chart").then((module) => ({
+    default: module.IncomeOutcomeChart,
+  })),
+);
+const ProfitPercentChart = lazy(() =>
+  import("@/components/dashboard/profit-percent-chart").then((module) => ({
+    default: module.ProfitPercentChart,
+  })),
+);
 
 async function fetchFinancialData(
   signal: AbortSignal,
@@ -114,8 +127,16 @@ function App() {
                 Financial charts
               </h2>
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-                <IncomeOutcomeChart data={monthlyData} loading={loading} />
-                <ProfitPercentChart data={monthlyData} loading={loading} />
+                <ChartErrorBoundary>
+                  <Suspense fallback={<ChartSkeleton />}>
+                    <IncomeOutcomeChart data={monthlyData} loading={loading} />
+                  </Suspense>
+                </ChartErrorBoundary>
+                <ChartErrorBoundary>
+                  <Suspense fallback={<ChartSkeleton />}>
+                    <ProfitPercentChart data={monthlyData} loading={loading} />
+                  </Suspense>
+                </ChartErrorBoundary>
               </div>
             </section>
           </div>

@@ -301,3 +301,57 @@ Se repitieron 11 pruebas de frontend, build y lint en un contenedor temporal:
 pasaron; el build mantuvo el aviso de bundle superior a 500 kB. No se probó
 con un lector de pantalla real ni se ejecutó Lighthouse; estos resultados no
 certifican conformidad WCAG completa.
+
+## Rendimiento React y accesibilidad
+
+Se revisó el dashboard con la skill `vercel-react-best-practices`, teniendo en
+cuenta que usa Vite y no Next.js. Las dos gráficas se cargan mediante
+`React.lazy` y `Suspense`: mantienen sus esqueletos durante la carga y cada una
+tiene un límite de error independiente con aviso y opción de recargar la página.
+La solicitud de datos sigue siendo independiente de la carga de las gráficas.
+`formatPeriod` busca las fechas extremas en una pasada en vez de ordenar una
+copia; la prueba nueva cubre un rango desordenado sin alterar la entrada.
+
+Se exploraron `testing`, `performance` y `accessibility` con `npx skills find`.
+Como skill adicional se reutilizó la copia local de
+[`accessibility`](https://skills.sh/addyosmani/web-quality-skills/accessibility):
+es pertinente para las transiciones nuevas de carga y error, y permite validar
+que la optimización no dependa exclusivamente de señales visuales. La búsqueda
+mostró aproximadamente 69.600 instalaciones y el repositorio de origen tenía
+3.076 estrellas durante la consulta. También se aplicó su recomendación de
+respetar movimiento reducido: los esqueletos dejan de animarse con esa preferencia.
+No se instalaron ni incluyeron skills en el commit.
+
+El HTML ya contiene idioma, título y viewport; Inter está declarada con fuentes
+de respaldo del sistema, sin incorporar una descarga de fuentes. No se
+introdujeron APIs exclusivas de Next.js ni se modificó el límite de advertencia.
+El build inicial emitió un archivo JS principal de 587,63 kB (175,87 kB gzip)
+y advirtió que superaba 500 kB. Tras los cambios, el archivo de entrada mide
+188,45 kB (60,10 kB gzip), con imports estáticos adicionales de 40,76 y
+1,20 kB; Recharts está en un chunk de 342,29 kB. Ya no aparece la advertencia.
+Las gráficas siguen solicitándose al abrir el dashboard: dividir archivos no
+demuestra una reducción equivalente de descarga total ni una mejora medida de
+tiempos reales.
+
+### Verificación
+
+Desde la raíz, con Compose en ejecución:
+
+```bash
+docker compose exec -T frontend npm test
+docker compose exec -T frontend npm run lint
+docker compose exec -T frontend npm run build
+git diff --check
+```
+
+Pasaron 12 pruebas, lint y build. El build generado se sirvió temporalmente
+con `python -m http.server 4173 --directory frontend/dist --bind 127.0.0.1`
+y se probó con Chromium, Playwright y axe usando datos sintéticos interceptados.
+Se comprobó la carga diferida de ambas gráficas, los KPI, la apertura de una
+tabla con teclado, un fallo de descarga de una gráfica y su recuperación con
+el botón de recarga, y el reintento con teclado ante un error 503 de API.
+Con `prefers-reduced-motion: reduce` se comprobó que la animación del esqueleto
+es `none`. Axe no reportó infracciones en carga, datos y error de gráfica;
+dejó una comprobación incompleta en cada uno de los dos últimos estados.
+No se ejecutaron Lighthouse ni pruebas con lector de pantalla, ni se midieron
+Web Vitals; la automatización no certifica conformidad WCAG completa.

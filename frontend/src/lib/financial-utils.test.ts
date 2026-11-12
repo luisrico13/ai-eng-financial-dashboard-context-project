@@ -146,6 +146,19 @@ describe("formatPeriod", () => {
   it("returns a no-data label for an empty movement list", () => {
     expect(formatPeriod([])).toBe("No data");
   });
+
+  it("finds the endpoints in an unsorted list without changing it", () => {
+    const movements = [
+      { ...sampleMovements[0], create_date: "2024-06-01" },
+      { ...sampleMovements[1], create_date: "2023-12-01" },
+      { ...sampleMovements[2], create_date: "2025-02-01" },
+      { ...sampleMovements[0], create_date: "2024-01-01" },
+    ];
+    const originalOrder = [...movements];
+
+    expect(formatPeriod(movements)).toBe("Dec 2023 - Feb 2025");
+    expect(movements).toEqual(originalOrder);
+  });
 });
 
 describe("formatters", () => {
